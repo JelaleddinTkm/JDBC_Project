@@ -1,10 +1,8 @@
 package com.cybertek.jdbc.day02;
 
-import java.sql.ResultSet;
-import java.sql.ResultSetMetaData;
-import java.sql.SQLException;
-import java.util.HashMap;
-import java.util.Map;
+
+import java.sql.*;
+import java.util.*;
 
 
 public class DB_Practice_3 {
@@ -32,16 +30,21 @@ public class DB_Practice_3 {
 
         for (int i=1; i < rsmd.getColumnCount(); i++) {
 
-            // System.out.println( rsmd.getColumnName(i) );
-            rowMap.put( rsmd.getColumnName(i), rs.getString(i));
+            //            System.out.println( rsmd.getColumnName(i)   );
 
+            String columnName = rsmd.getColumnName(i);
+            String columnValue = rs.getString(i) ;
+
+            rowMap.put(columnName ,  columnValue  );
         }
 
         System.out.println("rowMap = " + rowMap);
 
+        System.out.println("Country name is " +  rowMap.get("COUNTRY_NAME")  );
 
-
-
+        DB_Utility.destroy();
 
     }
+
+
 }

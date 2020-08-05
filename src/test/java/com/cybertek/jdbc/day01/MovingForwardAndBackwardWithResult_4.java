@@ -14,12 +14,12 @@ public class MovingForwardAndBackwardWithResult_4 {
         String password = "hr" ;
         Connection conn = DriverManager.getConnection(connectionStr,username,password) ;
 
-        // if we create the Statement in this way , this will generate a forward only resultset
+        // if we create the Statement in this way , this will generate a forward only resultSet
         // meaning we can only move forward with next() and can not move backward with previous
         //Statement stmnt = conn.createStatement();
-        // ResultSet.TYPE_SCROLL_INSENSITIVE will make the resultset created from this statement
+        // ResultSet.TYPE_SCROLL_INSENSITIVE will make the resultSet created from this statement
         // be able to move forward and backward ,
-        // ResultSet.CONCUR_READ_ONLY  will make resultset readonly and that's what we need
+        // ResultSet.CONCUR_READ_ONLY  will make resultSet readonly and that's what we need
 
         Statement stmnt = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY) ;
 

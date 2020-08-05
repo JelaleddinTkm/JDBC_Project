@@ -1,21 +1,42 @@
 package com.cybertek.jdbc.day02;
 
+
 import java.sql.*;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+
 
 public class DB_Utility {
 
 
     // adding static field so we can access in all static methods
+
     private static Connection conn;
+    private static Statement stmnt;
     private static ResultSet rs;
 
 
-    public static void destroy() {
 
+    //------------------------------------------------------------------------------------------
+
+
+
+    /*
+     * a static method to create connection
+     * with valid url and username password
+     * */
+    public static void createConnection() {
+
+        String connectionStr = "jdbc:oracle:thin:@52.71.242.164:1521:XE";
+        String username = "hr";
+        String password = "hr";
+
+        try {
+            conn = DriverManager.getConnection(connectionStr, username, password);
+            System.out.println("CONNECTION SUCCESSFUL");
+        } catch (SQLException e) {
+            System.out.println("CONNECTION HAS FAILED!");
+            e.printStackTrace();
+        }
 
     }
 
@@ -43,6 +64,106 @@ public class DB_Utility {
 
 
 
+
+//-------------------------------------------------------------------------------------
+
+
+    /**
+     * cleaning up the resources
+     */
+    public static void destroy(){
+
+        try{
+
+            if(rs!=null){
+                rs.close();
+            }
+            if(stmnt!=null){
+                rs.close();
+            }
+            if(conn!=null){
+                rs.close();
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+    }
+
+
+
+    //-------------------------------------------------------------------------------------
+
+
+
+    /**
+     *
+     * @param columnIndex the column you want to get a list out of
+     * @return List of String that contains entire column data from 1st row to last row
+     */
+    public static List<String> getColumnDataAsList(int columnIndex){
+
+        List<String> columnDataLst = new ArrayList<>();
+
+        try {
+
+            rs.beforeFirst();  // moving the cursor to before first location
+
+            while(rs.next() ){
+
+                String data =  rs.getString(columnIndex) ;
+                // getting the data from that column and adding to the the list
+                columnDataLst.add( data  );
+
+            }
+
+            rs.beforeFirst();  // moving the cursor to before first location after we are done
+
+        } catch (SQLException throwables) {
+            System.out.println("ERROR WHILE getColumnDataAsList ");
+            throwables.printStackTrace();
+        }
+
+        return columnDataLst;
+    }
+
+
+    //-------------------------------------------------------------------------------------
+
+
+    /**
+     *
+     * @param columnName the column you want to get a list out of
+     * @return List of String that contains entire column data from the column name specified
+     */
+    public static List<String> getColumnDataAsList(String columnName){
+
+        List<String> columnDataLst = new ArrayList<>();
+
+        try {
+
+            rs.beforeFirst();  // moving the cursor to before first location
+
+            while(rs.next() ){
+
+                String data =  rs.getString(columnName) ;
+                // getting the data from that column and adding to the the list
+                columnDataLst.add( data  );
+
+            }
+
+            rs.beforeFirst();  // moving the cursor to before first location after we are done
+
+        } catch (SQLException throwables) {
+            System.out.println("ERROR WHILE getColumnDataAsList ");
+            throwables.printStackTrace();
+        }
+
+        return columnDataLst;
+    }
+
+
 //-------------------------------------------------------------------------------------
 
 
@@ -55,12 +176,15 @@ public class DB_Utility {
         Map<String,String> rowMap = new HashMap<>();
         try{
 
+            rs.absolute(rowNum);
+
             ResultSetMetaData rsmd = rs.getMetaData();
             for (int colNum = 1; colNum <= getColumnCNT() ; colNum++) {
                 String colName = rsmd.getColumnName( colNum );
                 String colValue= rs.getString( colNum ) ;
                 rowMap.put(colName, colValue);
             }
+            rs.beforeFirst();
 
         }catch (SQLException e){
             System.out.println("ERRROR AT ROW MAP FUNCTION");
@@ -70,77 +194,28 @@ public class DB_Utility {
     }
 
 
-
-
 //-------------------------------------------------------------------------------------
-
 
 
     /**
      *
-     * @param columnIndex the column you want to get a list out of
-     * @return List of String that contains entire column data from 1st row to last row
+     * @return The entire resultset as List of Row Map
      */
-    public static List<String> getColumnDataAsList(int columnIndex){
+    public static List<Map<String,String> > getAllDataAsListOfMap(){
 
-        List<String> columnDataLst = new ArrayList<>();
-        try {
-            rs.beforeFirst();  // moving the cursor to before first location
+        List<Map<String,String> > rowMapList = new ArrayList<>();
 
-            while(rs.next() ){
+            for (int i = 1; i <= getRowCount(); i++) {
 
-                String data =  rs.getString(columnIndex) ;
-                // getting the data from that column and adding to the the list
-                columnDataLst.add( data  );
+                 rowMapList.add(   getRowMap(i)    ) ;
+             }
 
-            }
-            rs.beforeFirst();  // moving the cursor to before first location after we are done
-        } catch (SQLException throwables) {
-            System.out.println("ERROR WHILE getColumnDataAsList ");
-            throwables.printStackTrace();
-        }
+        return rowMapList ;
 
-        return columnDataLst;
     }
 
 
-
 //-------------------------------------------------------------------------------------
-
-
-
-    /**
-     *
-     * @param columnName the column you want to get a list out of
-     * @return List of String that contains entire column data from the column name specified
-     */
-    public static List<String> getColumnDataAsList(String columnName){
-
-        List<String> columnDataLst = new ArrayList<>();
-        try {
-            rs.beforeFirst();  // moving the cursor to before first location
-
-            while(rs.next() ){
-
-                String data =  rs.getString(columnName) ;
-                // getting the data from that column and adding to the the list
-                columnDataLst.add( data  );
-
-            }
-            rs.beforeFirst();  // moving the cursor to before first location after we are done
-        } catch (SQLException throwables) {
-            System.out.println("ERROR WHILE getColumnDataAsList ");
-            throwables.printStackTrace();
-        }
-
-        return columnDataLst;
-    }
-
-
-
-
-//-------------------------------------------------------------------------------------
-
 
 
     /*
@@ -154,11 +229,15 @@ public class DB_Utility {
      * @param columnIndex  column index we want to get the data from
      * @return the data in String
      */
+
     public static String getColumnDataAtRow (int rowNum , int columnIndex){
+
         // take home tasks
         // imporve this method and check for valid rowNum and columnIndex
         // if invalid return emptyString
+
         String result = "" ;
+
         try {
             rs.absolute( rowNum ) ;
             result = rs.getString( columnIndex ) ;
@@ -184,10 +263,13 @@ public class DB_Utility {
      * @return the data at that row with that column name
      */
     public static String getColumnDataAtRow (int rowNum , String columnName){
+
         // take home tasks
         // imporve this method and check for valid rowNum and columnIndex
         // if invalid return emptyString
+
         String result = "" ;
+
         try {
             rs.absolute( rowNum ) ;
             result = rs.getString( columnName ) ;
@@ -198,40 +280,6 @@ public class DB_Utility {
         }
 
         return result ;
-    }
-
-
-
-//-------------------------------------------------------------------------------------
-
-
-
-    // getting the entire row as List<String>
-
-    /**
-     *
-     * @param rowNum the row number you want the list from
-     * @return List of String that contains the row data
-     */
-    public static List<String> getRowDataAsList(int rowNum){
-
-        List<String> rowDataList = new ArrayList<>();
-        // how to move to that Row with rowNum
-        try {
-            rs.absolute(rowNum);
-            // iterate over each and every column and add the valie to the list
-            for (int colNum = 1; colNum <=  getColumnCNT() ; colNum++) {
-                rowDataList.add(    rs.getString( colNum)    );
-            }
-            //moving the cursor back to before first location just in case
-            rs.beforeFirst();
-
-        } catch (SQLException e) {
-            System.out.println("ERROR WHILE getRowDataAsList ");
-            e.printStackTrace();
-        }
-
-        return rowDataList;
     }
 
 
@@ -250,6 +298,7 @@ public class DB_Utility {
         try {
             rs.last(); // move to last row
             rowCount = rs.getRow(); // get the row number and assign it to rowCount
+
             // moving back the cursor to before first location just in case
             rs.beforeFirst();
 
@@ -257,56 +306,13 @@ public class DB_Utility {
             e.printStackTrace();
             System.out.println("ERROR WHILE GETTING ROW COUNT");
         }
+
         return rowCount ;
     }
 
 
 
 //-------------------------------------------------------------------------------------
-
-
-
-
-
-
-//-------------------------------------------------------------------------------------
-
-
-
-    /*
-     * a method to display all the data in the result set
-     *
-     * */
-    public static void displayAllData() {
-
-        // get the first row data  | without knowing the column names
-        int colCount = DB_Utility.getColumnCNT();
-        // in order to get whole result cursor must be at before first location !
-
-        try {
-            // in order to start from beginning , we should be at beforefirst location
-            rs.beforeFirst(); // this is for below loop to work
-            while (rs.next() == true) { // row iteration
-
-                for (int i = 1; i <= colCount; i++) { // column iteration
-                    System.out.print(rs.getString(i) + "\t");
-                }
-                System.out.println(); /// adding a blank line for next line
-            }
-            // now the cursor is at after last location
-            // move it back to before first location so we can have no issue calling the method again
-            rs.beforeFirst(); // this is for next method that might need to be at before first location
-
-        } catch (SQLException e) {
-            System.out.println("ERROR WHILE GETTING ALL DATA");
-            e.printStackTrace();
-        }
-
-    }
-
-
-
-//------------------------------------------------------------------------------------------
 
 
 
@@ -333,32 +339,83 @@ public class DB_Utility {
     }
 
 
+//-------------------------------------------------------------------------------------
 
-//------------------------------------------------------------------------------------------
+
+
+    // getting the entire row as List<String>
+
+    /**
+     *
+     * @param rowNum the row number you want the list from
+     * @return List of String that contains the row data
+     */
+    public static List<String> getRowDataAsList(int rowNum){
+
+        List<String> rowDataList = new ArrayList<>();
+
+        // how to move to that Row with rowNum
+
+        try {
+            rs.absolute(rowNum);
+
+            // iterate over each and every column and add the valie to the list
+
+            for (int colNum = 1; colNum <=  getColumnCNT() ; colNum++) {
+                rowDataList.add(    rs.getString( colNum)    );
+            }
+
+            //moving the cursor back to before first location just in case
+            rs.beforeFirst();
+
+        } catch (SQLException e) {
+            System.out.println("ERROR WHILE getRowDataAsList ");
+            e.printStackTrace();
+        }
+
+        return rowDataList;
+    }
+
+
+
+//-------------------------------------------------------------------------------------
 
 
 
     /*
-     * a static method to create connection
-     * with valid url and username password
+     * a method to display all the data in the result set
+     *
      * */
-    public static void createConnection() {
+    public static void displayAllData() {
 
-        String connectionStr = "jdbc:oracle:thin:@52.71.242.164:1521:XE";
-        String username = "hr";
-        String password = "hr";
+        // get the first row data  | without knowing the column names
+        int colCount = DB_Utility.getColumnCNT();
+        // in order to get whole result cursor must be at before first location !
 
         try {
-            conn = DriverManager.getConnection(connectionStr, username, password);
-            System.out.println("CONNECTION SUCCESSFUL");
+            // in order to start from beginning , we should be at beforefirst location
+            rs.beforeFirst(); // this is for below loop to work
+
+            while (rs.next() == true) { // row iteration
+
+                for (int i = 1; i <= colCount; i++) { // column iteration
+                    System.out.print(rs.getString(i) + "\t");
+                }
+
+                System.out.println(); /// adding a blank line for next line
+            }
+
+            // now the cursor is at after last location
+            // move it back to before first location so we can have no issue calling the method again
+
+            rs.beforeFirst(); // this is for next method that might need to be at before first location
+
         } catch (SQLException e) {
-            System.out.println("CONNECTION HAS FAILED!");
+            System.out.println("ERROR WHILE GETTING ALL DATA");
             e.printStackTrace();
         }
 
     }
-
-
 
 
 

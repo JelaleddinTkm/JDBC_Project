@@ -13,6 +13,7 @@ public class DB_Practice_1 {
         // print out all data from Jobs Table
 
         DB_Utility.createConnection();
+
         ResultSet rs = DB_Utility.runQuery("select * from Jobs");
 
 
