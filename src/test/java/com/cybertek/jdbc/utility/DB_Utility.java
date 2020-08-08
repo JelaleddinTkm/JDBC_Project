@@ -1,4 +1,4 @@
-package com.cybertek.jdbc.day02;
+package com.cybertek.jdbc.utility;
 
 
 import java.sql.*;
@@ -26,19 +26,67 @@ public class DB_Utility {
      * */
     public static void createConnection() {
 
-        String connectionStr = "jdbc:oracle:thin:@52.71.242.164:1521:XE";
-        String username = "hr";
-        String password = "hr";
+        String connectionStr = ConfigurationReader.getProperty("hr.database.url");
+        String username = ConfigurationReader.getProperty("hr.database.username");
+        String password = ConfigurationReader.getProperty("hr.database.password");
 
         try {
             conn = DriverManager.getConnection(connectionStr, username, password);
             System.out.println("CONNECTION SUCCESSFUL");
+
         } catch (SQLException e) {
             System.out.println("CONNECTION HAS FAILED!");
             e.printStackTrace();
         }
 
     }
+
+
+
+//-------------------------------------------------------------------------------------
+
+
+
+    public static void createConnection(String env){
+
+        // add validation to avoid invalid input
+        // because we currently only have 2 env : test , dev
+        // or add some condition for invalid env
+        //  to directly get the information as database.url , database.username, database.password
+        // without any env
+
+        System.out.println("You are in "+env+" environment");
+
+        String connectionStr = ConfigurationReader.getProperty(env+".database.url");
+        String username = ConfigurationReader.getProperty(env+".database.username");
+        String password = ConfigurationReader.getProperty(env+".database.password");
+
+        createConnection(connectionStr,username,password);
+
+    }
+
+
+
+//-------------------------------------------------------------------------------------
+
+
+    /**
+     *  Overload createConnection method to accept url, username, password
+     *     * so we can provide those information for different database
+     * @param url  The connection String that used to connect to the database
+     * @param username the username of database
+     * @param password the password of database
+     */
+public static void createConnection(String url, String username, String password){
+
+    try{
+        conn = DriverManager.getConnection(url, username, password);
+
+
+    }catch (SQLException e) {
+        System.out.println("ERROR WHILE CONNECTING WITH PARAMETERS");
+    }
+}
 
 
 //-------------------------------------------------------------------------------------
@@ -173,7 +221,7 @@ public class DB_Utility {
      */
     public static Map<String,String> getRowMap( int rowNum ){
 
-        Map<String,String> rowMap = new HashMap<>();
+        Map<String,String> rowMap = new LinkedHashMap<>();
         try{
 
             rs.absolute(rowNum);
